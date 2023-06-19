@@ -41,7 +41,7 @@ export const Login = ({ navigation, route }: Props) => {
       const error = body as ErrorResponse;
       setError(error.statusMessage);
     } else {
-      const { accessToken, ...user } = body as LoginResponse;
+      const { accessToken, user } = body as LoginResponse;
       console.log(res.headers.get("set-cookie"));
       const refresh_token = praseCookies(
         res.headers.get("set-cookie")!,

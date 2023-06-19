@@ -65,6 +65,7 @@ export default function App() {
         console.log(data);
         return false;
       }
+      console.log("RESPONSE AUTH SESSION", data);
       const { accessToken, user } = data as LoginResponse;
       console.log(user);
       userStore.setAccessToken(accessToken);
