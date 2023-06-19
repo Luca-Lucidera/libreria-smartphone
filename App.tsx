@@ -9,6 +9,7 @@ import {
   Icon,
   LinearProgress,
   Text,
+  Avatar,
 } from "@rneui/themed";
 import { Home } from "./views/Home";
 import { Login } from "./views/Login";
@@ -16,6 +17,7 @@ import { useUserStore } from "./store/userStore";
 import { View } from "react-native";
 import { LoginResponse } from "./model/loginResponse";
 import Cookies from "js-cookie";
+import { getUserIconLetter } from "./utils/user";
 
 const theme = createTheme({
   darkColors: {
@@ -42,8 +44,8 @@ export default function App() {
     if (!userStore.user) {
       setLoading(true);
       loginViaSession()
-        .then((logged) => console.log(logged))
-        .catch((err) => console.log(err))
+        .then((logged) => console.log("IS LOGGED:", logged))
+        .catch((err) => console.log("ERRORE IN LOGIN VIA SESSION:", err))
         .finally(() => setLoading(false));
     }
     async function loginViaSession() {
@@ -63,7 +65,8 @@ export default function App() {
         console.log(data);
         return false;
       }
-      const { accessToken, ...user } = data as LoginResponse;
+      const { accessToken, user } = data as LoginResponse;
+      console.log(user);
       userStore.setAccessToken(accessToken);
       userStore.setUser(user);
       return true;
@@ -110,6 +113,21 @@ export default function App() {
             headerStyle: { backgroundColor: theme.darkColors?.background },
             headerTitleStyle: { color: theme.darkColors?.primary },
             headerTitleAlign: "center",
+            headerLeft: () => (
+              <Avatar
+                size={25}
+                rounded
+                title={
+                  userStore.user?.name && userStore.user?.lastName
+                    ? getUserIconLetter(
+                        userStore.user?.name,
+                        userStore.user?.lastName
+                      )
+                    : "PP"
+                }
+                containerStyle={{ backgroundColor: theme.darkColors?.secondary, marginLeft: 15 }}
+              />
+            ),
             headerRight: () => (
               <Button size="lg" type="clear">
                 <Icon name="logout" color={theme.darkColors?.secondary} />
