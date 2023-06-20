@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
-import { Animated, FlatList, Pressable, ScrollView, View } from "react-native";
+import { Animated, FlatList, Pressable, View } from "react-native";
 import {
   Text,
   useTheme,
@@ -16,6 +16,7 @@ import * as React from "react";
 import { useUserStore } from "../store/userStore";
 import { Libro } from "../model/libro";
 import { TableHeader } from "../model/tableHeader";
+import { ScrollView } from "react-native-gesture-handler";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -902,7 +903,7 @@ export const Home = ({ navigation, route }: Props) => {
         },
       ]);
       setLoading(false);
-    }, 2000);
+    }, 1000);
   }, []);
 
   if (loading) {
@@ -951,8 +952,31 @@ export const Home = ({ navigation, route }: Props) => {
 const CardLibro = ({ libro }: { libro: Libro }) => {
   const styles = useStyles();
   const { theme } = useTheme();
+  const [libroDaModificare, setLibroDaModificare] = React.useState<Libro>({
+    id: "",
+    title: "",
+    purchased: 1,
+    read: 0,
+    type: "MANGA",
+    status: "Plan To Read",
+    publisher: "JPOP",
+    price: 1,
+    rating: 0,
+    comment: "",
+  });
   const [modalVisible, setModalVisible] = React.useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
+  const [modifica, setModifica] = React.useState(false);
+  const showAltroDialog = (libro: Libro) => {
+    setLibroDaModificare(libro);
+    setModalVisible(true);
+  };
+  const toggleModifica = async () => {
+    if (modifica) {
+      console.log(libroDaModificare);
+    }
+    setModifica(!modifica);
+  };
   const animated = new Animated.Value(1);
   const fadeIn = () => {
     Animated.timing(animated, {
@@ -968,6 +992,9 @@ const CardLibro = ({ libro }: { libro: Libro }) => {
       useNativeDriver: true,
     }).start();
   };
+  const deleteBook = async (idLibro: string) => {
+    setDeleteModalVisible(false);
+  };
   return (
     <View>
       <Pressable
@@ -975,7 +1002,7 @@ const CardLibro = ({ libro }: { libro: Libro }) => {
         onPressIn={fadeIn}
         onPressOut={fadeOut}
       >
-        <Card containerStyle={{ width: 170 }}>
+        <Card containerStyle={{ width: 170, maxHeight: 190, borderRadius: 10 }}>
           <Animated.View
             style={{
               opacity: animated,
@@ -988,7 +1015,7 @@ const CardLibro = ({ libro }: { libro: Libro }) => {
             <Text>Letti: {libro.purchased}</Text>
             <Text>Prezzo: {libro.price}€</Text>
             <Button
-              onPress={() => setModalVisible(true)}
+              onPress={() => showAltroDialog(libro)}
               buttonStyle={styles.altroButton}
               titleStyle={{ color: theme.colors.background }}
             >
@@ -996,42 +1023,134 @@ const CardLibro = ({ libro }: { libro: Libro }) => {
             </Button>
           </Animated.View>
         </Card>
-        <Dialog
-          isVisible={modalVisible}
-          onBackdropPress={() => setModalVisible(false)}
-          style={{ backgroundColor: theme.colors.background }}
-        >
-          <Dialog.Title title={libro.title} titleStyle={{ color: "white" }} />
-          <Text>Comprati: {libro.purchased}</Text>
-          <Text>Letti: {libro.read}</Text>
-          <Text>Tipo: {libro.type}</Text>
-          <Text>Status: {libro.status}</Text>
-          <Text>Editore: {libro.publisher}</Text>
-          <Text>Prezzo: {libro.price}€</Text>
-          <Text>Valutazione: {libro.rating}</Text>
-          <Dialog.Actions>
-            <Dialog.Button title="Modifica" />
-          </Dialog.Actions>
-        </Dialog>
+        <ScrollView>
+          <Dialog
+            isVisible={modalVisible}
+            onBackdropPress={() => setModalVisible(false)}
+            style={{ backgroundColor: theme.colors.background }}
+          >
+            {modifica ? (
+              <>
+                {Object.entries(libroDaModificare).map(
+                  ([key, value]: [string, string | number]) =>
+                    key == "id" ? null : typeof value === "string" ? (
+                      <Input
+                        key={key}
+                        label={key.toUpperCase()}
+                        value={value}
+                        onChange={(e) =>
+                          setLibroDaModificare({
+                            ...libroDaModificare,
+                            [key]: e.nativeEvent.text,
+                          })
+                        }
+                      />
+                    ) : key == "buy" || key == "read" ? (
+                      <Input
+                        key={key}
+                        keyboardType="numeric"
+                        value={value.toString()}
+                        onChange={(e) =>
+                          setLibroDaModificare({
+                            ...libroDaModificare,
+                            [key]: parseInt(e.nativeEvent.text),
+                          })
+                        }
+                      />
+                    ) : (
+                      <Input
+                        key={key}
+                        keyboardType="numeric"
+                        value={value.toString()}
+                        onChange={(e) =>
+                          setLibroDaModificare({
+                            ...libroDaModificare,
+                            [key]: parseFloat(e.nativeEvent.text),
+                          })
+                        }
+                      />
+                    )
+                )}
+              </>
+            ) : (
+              <>
+                <Dialog.Title
+                  title={libro.title}
+                  titleStyle={{ color: "white" }}
+                />
+                <Text>Comprati: {libro.purchased}</Text>
+                <Text>Letti: {libro.read}</Text>
+                <Text>Tipo: {libro.type}</Text>
+                <Text>Status: {libro.status}</Text>
+                <Text>Editore: {libro.publisher}</Text>
+                <Text>Prezzo: {libro.price}€</Text>
+                <Text>Valutazione: {libro.rating}</Text>
+              </>
+            )}
 
+            <Dialog.Actions>
+              <Dialog.Button
+                title={modifica ? "CONFERMA MODIFICHE" : "MODIFICA"}
+                onPress={() => toggleModifica()}
+              />
+            </Dialog.Actions>
+          </Dialog>
+        </ScrollView>
         <Dialog
           isVisible={deleteModalVisible}
           onBackdropPress={() => setDeleteModalVisible(false)}
           style={{ backgroundColor: theme.colors.background }}
         >
           <Dialog.Title
-            title={"ATTENZIONE!!!!!!!!!!!"}
-            titleStyle={{ color: "white" }}
+            title={"ATTENZIONE AREA PERICOLOSA!"}
+            titleStyle={{ color: theme.colors.error }}
           />
-          <Text>Comprati: {libro.purchased}</Text>
-          <Text>Letti: {libro.read}</Text>
-          <Text>Tipo: {libro.type}</Text>
-          <Text>Status: {libro.status}</Text>
-          <Text>Editore: {libro.publisher}</Text>
-          <Text>Prezzo: {libro.price}€</Text>
-          <Text>Valutazione: {libro.rating}</Text>
+          <Text>Attenzione, stai per eliminare il libro: "{libro.title}"</Text>
           <Dialog.Actions>
-            <Dialog.Button title="elimina" titleStyle={{ color: "red" }} />
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                flexDirection: "row",
+              }}
+            >
+              <Dialog.Button
+                title={"ANNULLA"}
+                type="solid"
+                onPress={() => setDeleteModalVisible(false)}
+                buttonStyle={{
+                  marginLeft: 10,
+                }}
+                titleStyle={{ color: "black" }}
+                iconRight={true}
+                icon={
+                  <Icon
+                    name="x"
+                    type="feather"
+                    style={{ marginLeft: 4 }}
+                    color={"black"}
+                  />
+                }
+              />
+
+              <Dialog.Button
+                title={"ELIMINA"}
+                titleStyle={{ color: theme.colors.error }}
+                buttonStyle={{
+                  borderColor: theme.colors.error,
+                }}
+                iconRight={true}
+                icon={
+                  <Icon
+                    name="trash-2"
+                    type="feather"
+                    style={{ marginLeft: 4 }}
+                    color={theme.colors.error}
+                  />
+                }
+                onPress={() => deleteBook(libro.id)}
+              />
+            </View>
           </Dialog.Actions>
         </Dialog>
       </Pressable>
