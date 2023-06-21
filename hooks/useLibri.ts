@@ -2,7 +2,7 @@ import React from "react";
 import { Libro } from "../model/libro";
 import { useUserStore } from "../store/userStore";
 
-export default function useBooks(firstFetch: boolean = true) {
+export default function useLibri(firstFetch: boolean = true) {
   //state
   const [libri, setLibri] = React.useState<Libro[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -22,6 +22,7 @@ export default function useBooks(firstFetch: boolean = true) {
         credentials: "include",
       });
       if (resp.status != 200) {
+        console.error(await resp.json())
         return setError(true);
       }
       const data = (await resp.json()) as Libro[];
