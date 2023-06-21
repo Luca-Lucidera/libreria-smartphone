@@ -17,6 +17,7 @@ import { useUserStore } from "../store/userStore";
 import { Libro } from "../model/libro";
 import { TableHeader } from "../model/tableHeader";
 import { ScrollView } from "react-native-gesture-handler";
+import { Loading } from "../components/loading";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -907,34 +908,7 @@ export const Home = ({ navigation, route }: Props) => {
   }, []);
 
   if (loading) {
-    return (
-      <View
-        style={{
-          height: "100%",
-          backgroundColor: theme.colors.background,
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <View
-          style={{
-            width: "70%",
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text h2 style={{ color: theme.colors.primary }}>
-            Caricamento
-          </Text>
-          <LinearProgress
-            color={theme.colors.secondary}
-            style={{ marginTop: 20 }}
-          />
-        </View>
-      </View>
-    );
+    return <Loading />;
   }
 
   return (
@@ -995,6 +969,8 @@ const CardLibro = ({ libro }: { libro: Libro }) => {
   const deleteBook = async (idLibro: string) => {
     setDeleteModalVisible(false);
   };
+
+  console.log("API", process.env.API);
   return (
     <View>
       <Pressable
